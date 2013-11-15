@@ -6,13 +6,16 @@ package bitmusic.profile.api;
 
 import bitmusic.music.data.Rights;
 import bitmusic.music.data.Song;
+import bitmusic.music.data.SongLibrary;
 import bitmusic.profile.classes.Category;
 import bitmusic.profile.classes.User;
+import bitmusic.profile.utilities.ProfileExceptions;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 /**
  *
- * @author saben2
+ * @author MilioPeralta
  */
 public interface ApiProfile {
     /*
@@ -26,14 +29,14 @@ public interface ApiProfile {
      *
      * @return
      */
-    public void createUser(String login, String password, String firstName, String lastName, Date birthDate, String avatarPath);
+    public void createUser(String login, String password, String firstName, String lastName, Calendar birthDate, String avatarPath) throws ProfileExceptions;
 
     /**
      * Saves a User as an object User
      *
      * @return
      */
-    public void saveUser(User user);
+    public void saveUser(User user) throws ProfileExceptions;
 
     /**
      * Returns the current user as an object User
@@ -41,6 +44,13 @@ public interface ApiProfile {
      * @return User user
      */
     public User getCurrentUser();
+
+    /**
+     * Set the current user as the one read in the file
+     *
+     * @param User newUser
+     */
+    public void setCurrentUser(User newUser);
 
     /**
      * Returns the folder of the current user
@@ -52,9 +62,10 @@ public interface ApiProfile {
     /**
      * Returns the categories names of an user
      *
+     * @param userId
      * @return ArrayList<String>
      */
-    public ArrayList<String> getCategoriesNameByUserId();
+    public ArrayList<String> getCategoriesNameByUserId(String userId);
 
     /**
      * Returns a category name of an user
@@ -126,7 +137,7 @@ public interface ApiProfile {
      *
      * @return ArrayList<Song> songs
      */
-    public ArrayList<Song> getSongs();
+    public SongLibrary getSongLibrary();
 
     /**
      * Returns the songs of the current user

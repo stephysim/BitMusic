@@ -6,23 +6,21 @@
 
 package bitmusic.profile.saving;
 
-import bitmusic.profile.Profile;
+import bitmusic.profile.api.ApiProfile;
+import bitmusic.profile.api.ApiProfileImpl;
 import bitmusic.profile.classes.User;
 import bitmusic.profile.utilities.ProfileExceptionType;
 import bitmusic.profile.utilities.ProfileExceptions;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 
 /**
  *
- * @author Holywa
+ * @author Holywa, MilioPeralta
  */
 public class UserParser {
     //########################## ATTRIBUTES ##########################//
@@ -30,29 +28,60 @@ public class UserParser {
     /**
      *
      */
-    private Path defaultPath;
+    private String defaultPath;
+    private String dirPath;
 
     //######################### CONSTRUCTORS ###########################//
     /**
      *
      */
-    public UserParser() {
-        this.defaultPath = FileSystems.getDefault().getPath("");
+	public UserParser() {
+
+
+        this.dirPath = ApiProfileImpl.getApiProfile().getCurrentUser().getLogin() + "_" + ApiProfileImpl.getApiProfile().getCurrentUser().getTransformedBirthday() + "\\";
+        this.defaultPath = new File("").getAbsolutePath().toString() + "\\" + this.dirPath;
+
+        System.out.println("Loading file from default path : " + this.defaultPath.toString());
     }
 
     //########################### METHODS ##############################//
 
     /**
-     * 
+     *
      * @throws ProfileExceptions
      */
     public void loadUser() throws ProfileExceptions {
         try {
             FileInputStream saveFile = new FileInputStream(defaultPath.toString());
-            ObjectInputStream ois = new ObjectInputStream(saveFile);
-            User loadedUser = (User) ois.readObject();
-            Profile.setCurrentUser(loadedUser);
-            ois.close();
+            try (ObjectInputStream ois = new ObjectInputStream(saveFile)) {
+                User loadedUser = (User) ois.readObject();
+                ApiProfileImpl.getApiProfile().setCurrentUser(loadedUser);
+            }
+        }
+        catch(FileNotFoundException eFound) {
+            throw new ProfileExceptions(ProfileExceptionType.ExistingFileError);
+        }
+        catch(IOException eIO) {
+            throw new ProfileExceptions(ProfileExceptionType.ReadingFileError);
+        }
+        catch(ClassNotFoundException eClass) {
+            throw new ProfileExceptions(ProfileExceptionType.FindingClassUserError);
+        }
+    }
+    
+    /**
+     *
+     * @return 
+     * @throws ProfileExceptions
+     */
+    public User loadUserForTest() throws ProfileExceptions {
+        try {
+            FileInputStream saveFile = new FileInputStream(defaultPath.toString());
+            User loadedUser;
+            try (ObjectInputStream ois = new ObjectInputStream(saveFile)) {
+                loadedUser = (User) ois.readObject();
+            }
+            return loadedUser;
         }
         catch(FileNotFoundException eFound) {
             throw new ProfileExceptions(ProfileExceptionType.ExistingFileError);
@@ -65,20 +94,19 @@ public class UserParser {
         }
     }
 
-    /*public void saveAuthFile() throws ProfileExceptions {
+    public void readAuthFile() throws ProfileExceptions {
         try {
-            FileOutputStream authFile = new FileOutputStream(defaultPath.toString());
-            ObjectOutputStream oos = new ObjectOutputStream(authFile);
-            oos.writeObject(Profile.getCurrentUser());
-            oos.flush();
-            oos.close();
+            FileInputStream authFile = new FileInputStream(this.defaultPath + "auth");
+            ObjectInputStream ois = new ObjectInputStream(authFile);
+            ois.readUTF();
+            ois.close();
         }
         catch(FileNotFoundException eFound) {
-            throw new ProfileExceptions(ProfileExceptionType.CreationFileError);
+            throw new ProfileExceptions(ProfileExceptionType.ExistingFileError);
         }
         catch(IOException eIO) {
-            throw new ProfileExceptions(ProfileExceptionType.WritingFileError);
+            throw new ProfileExceptions(ProfileExceptionType.ReadingFileError);
         }
-    }*/
+    }
 
 }
